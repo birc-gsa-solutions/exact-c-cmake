@@ -4,21 +4,35 @@
 #include "parsers.h"
 #include "sam.h"
 
-int next_match(const char *x, size_t n,
-               const char *p, size_t m,
-               int *i)
+struct match_iter
 {
-    for (; *i < n; (*i)++)
+    const char *x;
+    size_t n;
+    const char *p;
+    size_t m;
+    int i;
+};
+
+static struct match_iter match_iter(const char *x, size_t n,
+                                    const char *p, size_t m)
+{
+    return (struct match_iter){.x = x, .n = n, .p = p, .m = m, .i = 0};
+}
+
+static int next_match(struct match_iter *itr)
+{
+
+    for (int i = itr->i; i < itr->n; i++)
     {
-        for (int j = 0; j < m; j++)
+        for (int j = 0; j < itr->m; j++)
         {
-            if (x[*i + j] != p[j])
+            if (itr->x[i + j] != itr->p[j])
                 break;
-            if (j == m - 1)
+            if (j == itr->m - 1)
             {
                 // a match
-                (*i)++; // next time, start from here
-                return *i - 1;
+                itr->i = i + 1; // next time, start from here
+                return i;
             }
         }
     }
@@ -43,10 +57,10 @@ int main(int argc, char const *argv[])
     {
         for (struct fasta_rec *chrom = recs; chrom; chrom = chrom->next)
         {
-            for (int i = 0, pos = next_match(chrom->seq, chrom->len, read.seq, read.len, &i);
-                 pos >= 0; pos = next_match(chrom->seq, chrom->len, read.seq, read.len, &i))
+            struct match_iter itr = match_iter(chrom->seq, chrom->len, read.seq, read.len);
+            for (int i = next_match(&itr); i >= 0; i = next_match(&itr))
             {
-                print_sam(stdout, read.name, read.seq, chrom->name, pos);
+                print_sam(stdout, read.name, read.seq, chrom->name, i);
             }
         }
     }
