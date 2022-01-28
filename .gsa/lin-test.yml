@@ -5,8 +5,6 @@ tools:
     map: "gsa search {genome} {reads} -o {outfile} exact border"
   GSA-KMP:
     map: "gsa search {genome} {reads} -o {outfile} exact kmp"
-  naive:
-    map: "{root}/../naive {genome} {reads} > {outfile}"
   lin:
     map: "{root}/../lin {genome} {reads} > {outfile}"
   
